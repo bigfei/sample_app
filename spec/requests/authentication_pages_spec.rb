@@ -45,7 +45,7 @@ describe "AuthenticationPages" do
 
       describe "should not visit access the new and create actions in the Users controller" do
         before {visit new_user_path}
-        it { should have_selector('h1',  text:"Welcome to the Sample App") }
+        it { should have_selector('h1',  text:user.name) }
 
         before {post signup_path }
         specify { response.should redirect_to(root_path) }
@@ -102,6 +102,16 @@ describe "AuthenticationPages" do
         describe "visiting the user index" do
           before { visit users_path }
           it { should have_selector('title', text: 'Sign in') }
+        end
+
+        describe "submitting to the create action" do
+          before { post microposts_path }
+          specify { response.should redirect_to(signin_path) }
+        end
+
+        describe "submitting to the destroy action" do
+          before { delete micropost_path(FactoryGirl.create(:micropost)) }
+          specify { response.should redirect_to(signin_path) }
         end
       end
 
