@@ -11,6 +11,7 @@
 
 class User < ActiveRecord::Base
   attr_accessible :name, :email, :password, :password_confirmation
+
   has_secure_password
 
   validates :name, presence: true, length: {maximum: 50}
@@ -23,10 +24,15 @@ class User < ActiveRecord::Base
   #before_save { |user| user.email = email.downcase }
   before_save { self.email.downcase! }
   before_save :create_remember_token
+  before_destroy :cannot_destroy_admin_self
 
   private
     def create_remember_token
       self.remember_token = SecureRandom.urlsafe_base64
+    end
+
+    def cannot_destroy_admin_self
+      !self.admin?
     end
 
 end

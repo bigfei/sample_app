@@ -3,6 +3,8 @@ class UsersController < ApplicationController
   before_filter :signed_in_user, only: [:index, :edit, :update, :destroy]
   before_filter :correct_user,   only: [:edit, :update]
   before_filter :admin_user,     only: :destroy
+  before_filter :signed_up_no_visit, only: [:new, :create]
+
 
   def index
     #@users = User.all
@@ -51,6 +53,12 @@ class UsersController < ApplicationController
   end
 
   private
+
+  def signed_up_no_visit
+    if signed_in?
+      redirect_to(root_path)
+    end
+  end
 
   def signed_in_user
     unless signed_in?

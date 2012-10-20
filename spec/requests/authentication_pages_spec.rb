@@ -18,6 +18,9 @@ describe "AuthenticationPages" do
 
       it { should have_selector('title', text: 'Sign in') }
       it { should have_selector('div.alert.alert-error', text: 'Invalid') }
+      it { should_not have_link('Profile') }
+      it { should_not have_link('Settings') }
+
 
       describe "after visiting another page" do
         before { click_link "Home" }
@@ -28,9 +31,7 @@ describe "AuthenticationPages" do
     describe "with valid information" do
       let(:user) { FactoryGirl.create(:user) }
       before do
-        fill_in "Email", with: user.email
-        fill_in "Password", with: user.password
-        click_button "Sign in"
+        sign_in(user)
       end
 
       it { should have_selector('title', text: user.name) }
@@ -42,7 +43,16 @@ describe "AuthenticationPages" do
 
       it { should_not have_link('Sign in', href: signin_path) }
 
+      describe "should not visit access the new and create actions in the Users controller" do
+        before {visit new_user_path}
+        it { should have_selector('h1',  text:"Welcome to the Sample App") }
+
+        before {post signup_path }
+        specify { response.should redirect_to(root_path) }
+      end
     end
+
+
   end
 
   describe "authorization" do
@@ -52,9 +62,7 @@ describe "AuthenticationPages" do
       describe "when attempting to visit a protected page" do
         before do
           visit edit_user_path(user)
-          fill_in "Email", with: user.email
-          fill_in "Password", with: user.password
-          click_button "Sign in"
+          sign_in(user)
         end
 
         describe "after signing in" do
@@ -62,10 +70,24 @@ describe "AuthenticationPages" do
           it "should render the desired protected page" do
             page.should have_selector('title', text: 'Edit user')
           end
+
+          describe "when signing in again" do
+            before do
+              delete signout_path
+              sign_in(user)
+            end
+
+            it "should render the default (profile) page" do
+              page.should have_selector('title', text: user.name)
+            end
+          end
         end
       end
 
+
       describe "in the Users controller" do
+        it { should_not have_link('Profile', href: user_path(user)) }
+        it { should_not have_link('Settings', href: edit_user_path(user)) }
 
         describe "visiting the edit page" do
           before { visit edit_user_path(user) }
@@ -86,15 +108,24 @@ describe "AuthenticationPages" do
       describe "when attempting to visit a protected page" do
         before do
           visit edit_user_path(user)
-          fill_in "Email", with: user.email
-          fill_in "Password", with: user.password
-          click_button "Sign in"
+          sign_in(user)
         end
 
         describe "after signing in" do
 
           it "should render the desired protected page" do
             page.should have_selector('title', text: 'Edit user')
+          end
+
+          describe "when signing in again" do
+            before do
+              delete signout_path
+              sign_in(user)
+            end
+
+            it "should render the default (profile) page" do
+              page.should have_selector('title', text: user.name)
+            end
           end
         end
 
